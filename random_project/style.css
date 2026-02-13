@@ -1,0 +1,641 @@
+:root {
+    --env-width: 500px;
+    --env-height: 300px;
+}
+
+body {
+    background: #e6c0c6;
+    font-family: 'Pacifico', cursive;
+    text-align: center;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+#fakeCaptcha {
+    position: fixed;
+    inset: 0;
+    background: #f2f2f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.fake-box {
+    background: white;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    width: 320px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    font-family: Arial, sans-serif;
+    position: relative;
+}
+
+#fakeCheck {
+    width: 28px;
+    height: 28px;
+    border: 2px solid #c1c1c1;
+    margin-right: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#fakeCheck.checked::after {
+    content: "✔";
+    font-size: 18px;
+    color: #1a73e8;
+}
+
+.fake-box span {
+    font-size: 16px;
+    color: #000;
+}
+
+.fake-logo {
+    position: absolute;
+    right: 10px;
+    bottom: 22px;
+    text-align: center;
+    font-size: 10px;
+    padding-top: 10px;
+    color: #777;
+}
+
+.fake-logo .circle {
+    width: 26px;
+    height: 26px;
+    bottom: 60px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.fake-logo .blue {
+    background: #4285f4;
+    position: absolute;
+    top: 0;
+    left: 15px;
+    right: 15px;
+}
+
+.fake-logo .gray {
+    background: #bdbdbd;
+    position: absolute;
+    top: 9px;
+    right: 7px;
+}
+
+.fake-logo .text {
+    margin-top: 30px;
+}
+#fakeCheck.loading {
+    border: 3px solid #ccc;
+    border-top: 3px solid #1a73e8;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* CAPTCHA */
+#captchaGate {
+  position: fixed;
+  inset: 0;
+  background: #eaeaea;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  font-family: Arial, sans-serif;
+  font-size: small;
+}
+
+.captcha-card {
+  background: white;
+  width: 360px;
+  padding: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+.captcha-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.captcha-tile {
+    aspect-ratio: 1;
+    background: #f2f2f2;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.captcha-tile.heart {
+    /* keep `.heart` marker for JS; image will show via <img> */
+}
+
+.tile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.captcha-tile.selected {
+  outline: 4px solid #4285f4;
+}
+
+#verifyBtn {
+  width: 100%;
+  padding: 10px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#unlockLabel {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #eaeaea;
+    z-index: 998;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 36px;
+    color: #a05160;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+}
+
+#unlockLabel.show {
+    opacity: 1;
+}
+
+/* ENVELOPE */
+.envelope-container {
+    position: relative;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+}
+
+.envelope-container.show {
+    opacity: 1;
+}
+
+.envelope {
+    width: var(--env-width);
+    height: var(--env-height);
+    background: #ffb3c6;
+    border-radius: 10px;
+    position: relative;
+    /* allow certain card-face content to overlap outside */
+    overflow: visible;
+    cursor: pointer;
+}
+
+/* OPEN TEXT */
+.open-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    color: #a05160;
+    z-index: 4; /* ABOVE FLAP */
+    pointer-events: none;
+    transition: opacity 0.4s;
+}
+
+
+.envelope.open .open-text {
+    opacity: 0;
+}
+
+/* FLAP */
+.flap {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 55%;
+    background: #ff8fab;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform 0.8s ease;
+    z-index: 3;
+}
+
+.envelope.open .flap {
+    transform: rotateX(-180deg);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* FAINT FLAP OUTLINE */
+.flap-outline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 55%;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.6s ease 0.2s;
+}
+
+.flap-outline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    clip-path: polygon(
+        0 0, 
+        100% 0, 
+        50% 100%, 
+        calc(50% - 2px) calc(100% - 3px),
+        2px 2px,
+        0 2px
+    );
+    background: rgba(160, 81, 96, 0.25);
+}
+
+.envelope.open .flap-outline {
+    opacity: 1;
+}
+/* CARD (FULLY HIDDEN INITIALLY) */
+.card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 85%;
+    height: 250px;
+    background: none;
+    perspective: 1000px;
+
+    transform: translate(-50%, 120%);
+    transition: transform 1s ease;
+
+    z-index: 2;
+
+    /* allow faces to overflow when they position content beyond the card */
+    overflow: visible;
+}
+
+/* small cue placed at the card bottom-right */
+.card-cue {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    margin: 0;
+    font-size: 14px;
+    color: #a05160;
+    font-family: 'Pacifico', cursive;
+    z-index: 12;
+    pointer-events: none;
+}
+
+
+/* inner card that folds */
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.9s ease;
+    cursor: pointer;
+}
+
+/* flip when `.flipped` is added to .card */
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+
+}
+
+/* FLIPPED STATE */
+
+
+/* BOTH SIDES */
+.card-face {
+    position: absolute;
+    inset: 0;
+    background: white;
+    border-radius: 10px;
+    backface-visibility: hidden;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* FRONT */
+.card-front {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+}
+
+/* BACK */
+.card-back {
+    transform: rotateY(180deg);
+}
+
+/* hide the card until the envelope is opened */
+.envelope .card {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 1s ease;
+}
+
+.envelope.open .card {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* love page: a taller 'letter' panel that can extend outside the envelope
+   while keeping the card container size fixed */
+/* anchor the letter panel to the card interior so its width equals the card */
+#lovePage {
+    position: absolute;
+    top: -200px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    /* position relative to the face padding (card-face has 20px padding) */
+   
+    min-height: 250px; /* taller area for letter text */
+    background: rgb(237, 214, 214);
+    border-radius: 8px;
+    padding: 40px 18px 18px 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    display: none; /* shown by JS */
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: left;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    color: #333;
+    overflow: auto;
+    z-index: 5;
+}
+
+#lovePage h2#message {
+    text-align: center;
+    margin: 0 0 20px 0;
+    font-size: 40px;
+    color: #a05160;
+}
+
+#lovePage p {
+    margin: 50px 0 15px 0;
+    line-height: 1.5;
+    color: #a05160;
+}
+
+#gif {
+    width: 70%;
+    display: none;
+    border-radius: 10px;
+    margin: 0 auto;
+}
+
+#cardTitle {
+    margin-bottom: -20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+}
+
+
+.envelope.open .card {
+    transform: translate(-50%, -50%);
+}
+
+.envelope.open .card-inner {
+    transform: rotateX(0deg);
+}
+
+/* when envelope is open and the card has the flipped class, ensure Y-rotation applies
+   (this is more specific so it overrides the generic envelope rule) */
+.envelope.open .card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+/* CONTENT */
+button {
+    display: inline-block;
+    width: 160px;
+    padding: 18px 20px;
+    color: white;
+    font-size: 1.1em;
+    border-radius: 30px;
+    outline: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px gray;
+    border: 2px solid #ee636d;
+}
+
+#yesBtn {
+    background: #f3828a;
+    transition: transform 0.2s;
+}
+
+#noBtn {
+    transition: transform 0.2s;
+    background: #fff;
+    color: #ee636d;
+}
+
+/* center question buttons on the back */
+.card-back {
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+
+#questionPage {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.confetti-heart {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: red;
+    transform: rotate(75deg);
+    animation: fall 3s linear forwards;
+    z-index: 20;
+}
+
+.confetti-heart::before,
+.confetti-heart::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: red;
+    border-radius: 50%;
+}
+
+.confetti-heart::before {
+    top: -10px;
+    left: 0;
+}
+
+.confetti-heart::after {
+    left: -10px;
+    top: 0;
+}
+
+
+@keyframes fall {
+    from {
+        top: -40px;
+        opacity: 1;
+    }
+    to {
+        top: 100vh;
+        opacity: 0;
+    }
+}
+
+span {
+    z-index: 21;
+}
+
+#finalPage {
+    position: absolute;
+    top: -200px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 450px; /* Increased height for the iframe */
+    background: rgb(237, 214, 214);
+    border-radius: 8px;
+    padding: 40px 18px 18px 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: center; /* Center the content */
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 14px;
+    color: #333;
+    overflow: auto;
+    z-index: 5;
+}
+
+#finalPage h2 {
+    text-align: center;
+    margin: 0 0 20px 0;
+    font-size: 32px;
+    color: #a05160;
+}
+
+#finalPage p {
+    margin: 15px 0;
+    line-height: 1.5;
+    color: #a05160;
+}
+
+#secondLovePage {
+    position: absolute;
+    top: -200px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 250px;
+    background: rgb(237, 214, 214);
+    border-radius: 8px;
+    padding: 40px 18px 18px 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: left;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 16px;
+    color: #333;
+    overflow: auto;
+    z-index: 5;
+}
+
+#secondLovePage h2#secondMessage {
+    text-align: center;
+    margin: 0 0 20px 0;
+    padding-top: 20px;
+    font-size: 24px;
+    color: #a05160;
+}
+
+#secondLovePage h3 {
+    text-align: center;
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #9f6f78;
+}
+
+#secondLovePage p {
+    margin: 50px 0 15px 0;
+    line-height: 1.5;
+    color: #a05160;
+}
+
+.back-btn {
+    position: absolute;
+    top: -190px;
+    left: 12px;
+    width: auto;
+    padding: 3px 6px;
+    font-size: 12px;
+    background: transparent;
+    color: #a05160;
+    border: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Pacifico', cursive;
+    transition: all 0.3s ease;
+    z-index: 10;
+    display: none;
+}
+
+.back-btn:hover {
+    background: #a05160;
+    color: white;
+    transform: translateX(-3px);
+}
+
+.back-btn.show {
+    display: block;
+}
+
